@@ -133,9 +133,69 @@
 - Benchmark 计划文档
 - 最终完成愿景文档
 
-## 3. 已验证内容
+## 3. 模块状态总览
 
-### 3.1 本地编译
+| 模块 | 当前状态 | 完成度判断 | 下一步关键动作 |
+| --- | --- | --- | --- |
+| HTTP API | MVP 已完成 | 可本地演示 | 迁移到 Spring Boot Controller，并补充统一错误响应 |
+| 模型路由 | MVP 已完成 | 仅模拟 Provider | 接入可替换的真实 Provider Adapter |
+| 重试与降级 | 原型已完成 | 仅有确定性 fallback | 增加错误分类、超时、退避和熔断 |
+| Tool Runtime | MVP 已完成 | 单进程幂等 | Redis 持久化、并发原子性和 JSON Schema 校验 |
+| Trace / Metrics | 基础完成 | 进程内数据 | OpenTelemetry、Prometheus 和外部 Trace 后端 |
+| 异步任务 | 未开始 | 无 Kafka | Kafka、任务状态机、重试队列和 DLQ |
+| Prompt Registry | 未开始 | 无版本管理 | Prompt 版本、评测门禁、灰度与回滚 |
+| AI 评测 | 未开始 | 只有计划 | Python 评测服务和固定数据集 |
+| 成本治理 | 未开始 | 无 Token 计费 | 成本模型、预算、配额和限流 |
+| 安全治理 | 文档规划 | 无运行时策略 | Tool ACL、PII 脱敏、审计和人工审批 |
+| 开源协作 | 未开始 | 尚无外部 PR | 先完成贡献准备，再提交第一个有效 PR |
+
+## 4. 愿景阶段映射
+
+当前项目采用“先验证核心语义，再引入基础设施”的推进方式：
+
+| 阶段 | 目标 | 关键交付物 | 当前状态 |
+| --- | --- | --- | --- |
+| Phase 0 | 证明最小可靠性语义 | Java MVP、fallback、Tool 幂等、基础 Trace | 已完成 |
+| Phase 1 | 生产化核心运行时 | Spring Boot、真实 Provider、Redis、错误分类、集成测试 | 进行中，尚未开始编码 |
+| Phase 2 | 分布式任务和发布治理 | Kafka、DLQ、Prompt Registry、灰度与回滚 | 未开始 |
+| Phase 3 | AI 质量与可观测平台 | OpenTelemetry、Python 评测、Prometheus、Grafana、Benchmark | 未开始 |
+| Phase 4 | 开源生态与部署 | MCP、SDK、贡献指南、Kubernetes、社区 PR | 未开始 |
+
+## 5. 当前风险与应对
+
+### 风险一：MVP 与生产系统之间存在较大差距
+
+**表现**：当前实现为 JDK HTTP Server，存储、Provider 和 Trace 都是进程内或模拟实现。
+
+**应对**：在 README 和进度文档中明确标注 MVP；下一阶段优先迁移 Spring Boot、接入 Redis 并补充集成测试，不提前宣称生产级能力。
+
+### 风险二：幂等实现无法支持多实例
+
+**表现**：当前 `ConcurrentHashMap` 只能在单个进程内去重，重启或横向扩容后会失效。
+
+**应对**：设计 Redis Lua / SETNX 原子写入、状态过期和结果持久化；用并发测试验证“单一副作用”。
+
+### 风险三：模拟 Provider 无法证明真实模型质量
+
+**表现**：当前 fallback 只证明路由控制流，不证明真实模型的延迟、Token、成本和答案质量。
+
+**应对**：增加 Provider Adapter 接口和可配置的 Mock Provider；真实凭据只通过环境变量注入，评测数据使用公开或自造数据。
+
+### 风险四：可观测性可能泄露用户内容
+
+**表现**：后续接入完整 Prompt / Response Trace 后，可能把敏感内容写入日志或 Trace。
+
+**应对**：默认只记录元数据；引入字段级脱敏、采样、访问控制和保留期限；公开示例禁止使用生产数据。
+
+### 风险五：项目范围膨胀
+
+**表现**：同时加入 Spring Boot、Kafka、MCP、评测、前端和 Kubernetes，容易导致每个模块都不完整。
+
+**应对**：按照 P0 → P1 → P2 → P3 顺序推进，每个阶段必须有测试、文档和可演示结果后再扩展。
+
+## 6. 已验证内容
+
+### 6.1 本地编译
 
 执行：
 
@@ -147,7 +207,7 @@ javac -d out $(find src/main/java src/test/java -name '*.java')
 
 结果：通过。
 
-### 3.2 核心测试
+### 6.2 核心测试
 
 执行：
 
@@ -169,7 +229,7 @@ AgentOpsApplicationTest passed
 - Tool 重复请求回放
 - 指标计数
 
-### 3.3 HTTP 冒烟测试
+### 6.3 HTTP 冒烟测试
 
 已验证：
 
@@ -178,13 +238,13 @@ AgentOpsApplicationTest passed
 - `/v1/tools/execute` 首次执行和重复回放行为正确
 - `/metrics` 返回对应计数
 
-### 3.4 远程 CI
+### 6.4 远程 CI
 
 - GitHub Actions 工作流已配置
 - 最近一次 CI：成功
 - CI 包含 Java 17 配置、源码编译和核心测试
 
-## 4. 当前目录结构
+## 7. 当前目录结构
 
 ```text
 agentops-j/
@@ -215,7 +275,7 @@ agentops-j/
         └── AgentOpsApplicationTest.java
 ```
 
-## 5. 尚未完成事项
+## 8. 尚未完成事项
 
 ### P0：下一阶段必须完成
 
@@ -257,7 +317,7 @@ agentops-j/
 - 创建第一个社区 Issue
 - 提交与可靠性、Tool Calling 或可观测性相关的代码 PR
 
-## 6. 当前限制
+## 9. 当前限制
 
 1. 目前是可运行 MVP，不应描述为生产级平台。
 2. Model Provider 为模拟实现，尚无真实模型网络调用。
@@ -267,7 +327,7 @@ agentops-j/
 6. 尚未执行正式并发压测，因此没有发布吞吐量、延迟或成功率承诺。
 7. 尚未接入 Kafka、Redis、PostgreSQL、OpenTelemetry 和 Python 评测服务。
 
-## 7. 下一步验收标准
+## 10. 下一步验收标准
 
 下一阶段完成后，至少应满足：
 
@@ -281,7 +341,7 @@ agentops-j/
 - GitHub Actions 执行单元测试和集成测试
 - Docker Compose 可以启动完整依赖
 
-## 8. 进度总结
+## 11. 进度总结
 
 当前 AgentOps-J 已经从“项目想法”进入“可运行、可测试、可推送的 MVP”阶段，已经具备以下简历展示基础：
 
