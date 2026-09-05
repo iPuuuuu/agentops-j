@@ -42,6 +42,10 @@ export AGENTOPS_FALLBACK_MODEL='backup-model'
 mvn spring-boot:run
 ```
 
+This repository includes `.env.example`. Copy it to `.env`, set your provider key, and run `set -a; source .env; set +a; mvn spring-boot:run` for local development. `.env` is ignored by Git and must never be committed.
+
+Set `AGENTOPS_REDIS_URL` to enable durable Tool idempotency. Without it, the service uses the in-memory store. `docker compose up --build` starts the application with Redis and a 24-hour idempotency TTL.
+
 Supported runtime settings include `AGENTOPS_MAX_RETRIES`, `AGENTOPS_BACKOFF_MILLIS`, `AGENTOPS_BREAKER_THRESHOLD`, and `AGENTOPS_PROVIDER_TIMEOUT_MILLIS`. API keys are read only from environment variables and are never included in responses or metrics.
 
 ## Tool idempotency example

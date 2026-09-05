@@ -7,6 +7,7 @@ import com.ipuuuuu.agentops.tools.ToolExecutor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 @SpringBootApplication
 public class AgentOpsApplication {
@@ -31,7 +32,11 @@ public class AgentOpsApplication {
     }
 
     @Bean
-    ToolExecutor toolExecutor(MetricsRegistry metrics) {
-        return new ToolExecutor(metrics);
+    @Primary
+    ToolExecutor toolExecutor(MetricsRegistry metrics,
+                              org.springframework.beans.factory.ObjectProvider<com.ipuuuuu.agentops.tools.IdempotencyStore> store) {
+        com.ipuuuuu.agentops.tools.IdempotencyStore idempotency = store.getIfAvailable();
+        return idempotency == null ? new ToolExecutor(metrics) : new ToolExecutor(
+                metrics, idempotency, com.ipuuuuu.agentops.tools.ToolRegistry.defaultRegistry());
     }
 }

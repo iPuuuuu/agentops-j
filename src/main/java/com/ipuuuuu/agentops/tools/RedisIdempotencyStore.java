@@ -12,12 +12,22 @@ public final class RedisIdempotencyStore implements IdempotencyStore {
     public interface Commands {
         String get(String key);
         boolean setIfAbsent(String key, String value);
+
+        default boolean setIfAbsent(String key, String value, java.time.Duration ttl) {
+            return setIfAbsent(key, value);
+        }
     }
 
     private final Commands commands;
+    private final java.time.Duration ttl;
 
     public RedisIdempotencyStore(Commands commands) {
+        this(commands, java.time.Duration.ZERO);
+    }
+
+    public RedisIdempotencyStore(Commands commands, java.time.Duration ttl) {
         this.commands = Objects.requireNonNull(commands, "commands");
+        this.ttl = ttl == null ? java.time.Duration.ZERO : ttl;
     }
 
     @Override public String get(String key) {
@@ -27,7 +37,9 @@ public final class RedisIdempotencyStore implements IdempotencyStore {
     @Override public String putIfAbsent(String key, String result) {
         Objects.requireNonNull(key, "key");
         Objects.requireNonNull(result, "result");
-        if (commands.setIfAbsent(key, result)) return result;
+        boolean hasTtl = !ttl.isZero() && !ttl.isNegative();
+        boolean stored = hasTtl ? commands.setIfAbsent(key, result, ttl) : commands.setIfAbsent(key, result);
+        if (stored) return result;
         String existing = commands.get(key);
         if (existing == null) throw new IllegalStateException("Redis SETNX lost but value is unavailable");
         return existing;

@@ -25,6 +25,8 @@ PENDING -> RUNNING -> SUCCEEDED
 
 The registry validates tool names, required parameters, and tenant permissions. An idempotency key is constructed from `tenant_id`, `tool_name`, and `business_request_id`. The `IdempotencyStore` contract supports an in-memory implementation for local runs and a `RedisIdempotencyStore` command seam for atomic SETNX/GET wiring in production. A repeated request receives the previously completed result. This protects side-effecting operations such as sending messages, creating tickets, or mutating a business record.
 
+When `AGENTOPS_REDIS_URL` is set, Spring Boot wires a Redis-backed implementation using atomic `SETNX` with a configurable `AGENTOPS_IDEMPOTENCY_TTL_SECONDS`. The default remains in memory for offline development.
+
 ## Async tasks and prompts
 
 `InMemoryTaskQueue` and `TaskExecutor` provide a JDK-only task state machine with bounded retries, `DLQ` transition, and manual replay. `PromptRegistry` provides immutable prompt versions, activation, rollback, and audit events. These are intentionally storage-independent seams so Redis/Kafka/PostgreSQL adapters can be added without changing callers.
