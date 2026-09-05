@@ -11,6 +11,10 @@ HTTP request
   -> response includes trace id and chosen provider
 ```
 
+## Provider configuration
+
+`ModelRouter.fromEnvironment` keeps local route names (`balanced`, `fast`) separate from upstream model names. Each provider can be switched to `OpenAiCompatibleHttpProvider` by setting its endpoint environment variable. API keys are injected through environment variables, while missing endpoints retain the deterministic local providers for offline development.
+
 ## Tool lifecycle
 
 ```text

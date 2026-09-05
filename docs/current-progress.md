@@ -5,7 +5,7 @@
 ## 1. 当前版本
 
 - **版本**：`0.1.0-SNAPSHOT`
-- **阶段**：可运行 MVP / Bootstrap
+- **阶段**：Phase 1 生产化核心运行时进行中
 - **本地路径**：`/Users/a1234/code/agentops-j`
 - **远程仓库**：https://github.com/iPuuuuu/agentops-j
 - **默认分支**：`main`
@@ -18,6 +18,7 @@
 - 使用 Java 17 编写并验证
 - 核心业务模块保持 JDK 依赖，HTTP 运行时已迁移到 Spring Boot 3
 - 使用 Maven 管理 Spring Boot 依赖、测试和可执行 jar 打包
+- 支持通过环境变量切换到 OpenAI-compatible 远程 Provider，并配置超时、重试和熔断参数
 - 提供 Dockerfile 和 Docker Compose 配置
 
 ### 2.2 HTTP API
@@ -138,7 +139,7 @@
 | 模块 | 当前状态 | 完成度判断 | 下一步关键动作 |
 | --- | --- | --- | --- |
 | HTTP API | Spring Boot 迁移完成 | MockMvc 集成测试通过 | 补充鉴权、限流和生产环境配置 |
-| 模型路由 | MVP 已完成 | 仅模拟 Provider | 接入可替换的真实 Provider Adapter |
+| 模型路由 | 远程 Provider 接入完成 | OpenAI-compatible HTTP Adapter 已可配置 | 增加多供应商配置校验和真实服务联调 |
 | 重试与降级 | 原型已完成 | 仅有确定性 fallback | 增加错误分类、超时、退避和熔断 |
 | Tool Runtime | MVP 已完成 | 单进程幂等 | Redis 持久化、并发原子性和 JSON Schema 校验 |
 | Trace / Metrics | 基础完成 | 进程内数据 | OpenTelemetry、Prometheus 和外部 Trace 后端 |
@@ -156,7 +157,7 @@
 | 阶段 | 目标 | 关键交付物 | 当前状态 |
 | --- | --- | --- | --- |
 | Phase 0 | 证明最小可靠性语义 | Java MVP、fallback、Tool 幂等、基础 Trace | 已完成 |
-| Phase 1 | 生产化核心运行时 | Spring Boot、真实 Provider、Redis、错误分类、集成测试 | 进行中，Spring Boot 和集成测试已完成 |
+| Phase 1 | 生产化核心运行时 | Spring Boot、真实 Provider、Redis、错误分类、集成测试 | 进行中，Spring Boot、Provider Adapter 和集成测试已完成 |
 | Phase 2 | 分布式任务和发布治理 | Kafka、DLQ、Prompt Registry、灰度与回滚 | 未开始 |
 | Phase 3 | AI 质量与可观测平台 | OpenTelemetry、Python 评测、Prometheus、Grafana、Benchmark | 未开始 |
 | Phase 4 | 开源生态与部署 | MCP、SDK、贡献指南、Kubernetes、社区 PR | 未开始 |
@@ -165,9 +166,9 @@
 
 ### 风险一：MVP 与生产系统之间存在较大差距
 
-**表现**：当前 HTTP 运行时已是 Spring Boot，存储、Provider 和 Trace 仍有进程内或模拟实现。
+**表现**：当前 HTTP 运行时已是 Spring Boot，存储和 Trace 仍是进程内实现，Provider 默认模拟但已支持 OpenAI-compatible 远程调用。
 
-**应对**：在 README 和进度文档中明确标注 MVP；下一阶段接入 Redis、真实 Provider 并继续完善集成测试，不提前宣称生产级能力。
+**应对**：在 README 和进度文档中明确标注 MVP；下一阶段接入 Redis、完成具体供应商联调并继续完善集成测试，不提前宣称生产级能力。
 
 ### 风险二：幂等实现无法支持多实例
 
@@ -283,8 +284,7 @@ agentops-j/
 
 ### P0：下一阶段必须完成
 
-- 接入真实模型 Provider 抽象
-- 接入真实模型 Provider 抽象
+- 完成 OpenAI-compatible Provider Adapter 的环境变量接入
 - 将幂等记录迁移到 Redis 或 PostgreSQL
 - 增加并发场景下的原子幂等测试
 - 增加请求参数和 Tool JSON Schema 校验
@@ -324,7 +324,7 @@ agentops-j/
 ## 9. 当前限制
 
 1. 目前是可运行 MVP，不应描述为生产级平台；HTTP 层已使用 Spring Boot 3。
-2. Model Provider 为模拟实现，尚无真实模型网络调用。
+2. Model Provider 支持真实 OpenAI-compatible 网络调用，但默认仍为模拟实现，尚未完成具体供应商联调。
 3. Tool 幂等存储为内存结构，不支持多实例共享。
 4. Trace 与 Metrics 仅保存在进程内，不支持持久化或外部监控系统。
 5. HTTP JSON 解析为轻量实现，不适合直接处理复杂生产请求。

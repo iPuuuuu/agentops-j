@@ -2,6 +2,8 @@ package com.ipuuuuu.agentops.model;
 
 import com.ipuuuuu.agentops.observability.MetricsRegistry;
 import java.util.*;
+import java.net.URI;
+import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 
 /** Configuration-driven ordered provider router with bounded retries and a small circuit breaker. */
@@ -27,7 +29,48 @@ public final class ModelRouter {
         this.maxRetries = Math.max(0, maxRetries); this.backoffMillis = Math.max(0, backoffMillis); this.breakerThreshold = Math.max(1, breakerThreshold);
     }
     public static ModelRouter fromEnvironment(MetricsRegistry metrics) {
-        return new ModelRouter(metrics);
+        Map<String, ModelProvider> providers = new HashMap<>();
+        providers.put("primary-provider", providerFromEnvironment("primary-provider",
+                "AGENTOPS_PRIMARY_ENDPOINT", "AGENTOPS_PRIMARY_API_KEY", "AGENTOPS_PRIMARY_MODEL",
+                new DeterministicModelProvider("primary-provider", true)));
+        providers.put("fallback-provider", providerFromEnvironment("fallback-provider",
+                "AGENTOPS_FALLBACK_ENDPOINT", "AGENTOPS_FALLBACK_API_KEY", "AGENTOPS_FALLBACK_MODEL",
+                new DeterministicModelProvider("fallback-provider")));
+        providers.put("fast-provider", providerFromEnvironment("fast-provider",
+                "AGENTOPS_FAST_ENDPOINT", "AGENTOPS_FAST_API_KEY", "AGENTOPS_FAST_MODEL",
+                new DeterministicModelProvider("fast-provider")));
+        return new ModelRouter(metrics, providers,
+                Map.of("fast", List.of("fast-provider"), "balanced", List.of("primary-provider", "fallback-provider")),
+                environmentInt("AGENTOPS_MAX_RETRIES", 0),
+                environmentLong("AGENTOPS_BACKOFF_MILLIS", 0),
+                environmentInt("AGENTOPS_BREAKER_THRESHOLD", 2));
+    }
+
+    private static ModelProvider providerFromEnvironment(String name, String endpointKey, String apiKeyKey,
+                                                          String modelKey, ModelProvider fallback) {
+        String endpoint = System.getenv(endpointKey);
+        if (endpoint == null || endpoint.isBlank()) return fallback;
+        try {
+            return new OpenAiCompatibleHttpProvider(name, URI.create(endpoint), System.getenv(apiKeyKey),
+                    environment(modelKey, ""), Duration.ofMillis(environmentLong("AGENTOPS_PROVIDER_TIMEOUT_MILLIS", 30_000)));
+        } catch (IllegalArgumentException error) {
+            throw new IllegalStateException(endpointKey + " must be a valid URI", error);
+        }
+    }
+
+    private static String environment(String key, String fallback) {
+        String value = System.getenv(key);
+        return value == null || value.isBlank() ? fallback : value.trim();
+    }
+
+    private static int environmentInt(String key, int fallback) {
+        try { return Integer.parseInt(environment(key, Integer.toString(fallback))); }
+        catch (NumberFormatException error) { return fallback; }
+    }
+
+    private static long environmentLong(String key, long fallback) {
+        try { return Long.parseLong(environment(key, Long.toString(fallback))); }
+        catch (NumberFormatException error) { return fallback; }
     }
     public ModelResponse route(String requestedModel) { return route(new ModelRequest(requestedModel, "")); }
     public ModelResponse route(ModelRequest request) {

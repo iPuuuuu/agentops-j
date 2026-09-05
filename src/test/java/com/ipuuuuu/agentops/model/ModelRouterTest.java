@@ -4,6 +4,9 @@ import com.ipuuuuu.agentops.observability.MetricsRegistry;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import com.sun.net.httpserver.HttpServer;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 
 public final class ModelRouterTest {
     public static void main(String[] args) {
@@ -13,6 +16,7 @@ public final class ModelRouterTest {
         breakerSkipsRepeatedlyFailingProvider();
         unknownModelIsExplicit();
         errorClassificationIsExplicit();
+        openAiCompatibleProviderUsesConfiguredUpstreamModel();
         System.out.println("ModelRouterTest passed");
     }
 
@@ -82,6 +86,35 @@ public final class ModelRouterTest {
         check(new ProviderException(ProviderException.Kind.NETWORK, "io").retryable(), "network retryable");
         check(!new ProviderException(ProviderException.Kind.AUTHENTICATION, "401").retryable(), "auth non-retryable");
         check(!new ProviderException(ProviderException.Kind.INVALID_REQUEST, "400").retryable(), "invalid request non-retryable");
+    }
+
+    private static void openAiCompatibleProviderUsesConfiguredUpstreamModel() {
+        try {
+            AtomicInteger requests = new AtomicInteger();
+            AtomicInteger modelSeen = new AtomicInteger();
+            HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+            server.createContext("/chat", exchange -> {
+                requests.incrementAndGet();
+                String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+                if (body.contains("\"model\":\"upstream-model\"")) modelSeen.incrementAndGet();
+                byte[] response = "{\"choices\":[{\"message\":{\"content\":\"stub response\"}}]}".getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (var output = exchange.getResponseBody()) { output.write(response); }
+            });
+            server.start();
+            try {
+                ModelProvider provider = new OpenAiCompatibleHttpProvider("remote", new java.net.URI(
+                        "http://127.0.0.1:" + server.getAddress().getPort() + "/chat"), "secret", "upstream-model");
+                ModelResponse response = provider.complete(new ModelRequest("balanced", "hello"));
+                check(requests.get() == 1, "remote provider sends one request");
+                check(modelSeen.get() == 1, "remote provider uses configured upstream model");
+                check(response.content().equals("stub response"), "remote provider extracts response content");
+            } finally {
+                server.stop(0);
+            }
+        } catch (Exception error) {
+            throw new AssertionError(error);
+        }
     }
 
     private static void check(boolean value, String message) { if (!value) throw new AssertionError(message); }

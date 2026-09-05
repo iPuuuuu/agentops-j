@@ -30,7 +30,19 @@ curl -X POST http://localhost:8080/v1/chat/completions \
   -d '{"model":"balanced","messages":[{"role":"user","content":"hello"}]}'
 ```
 
-The `balanced` route deliberately fails the primary provider once and then returns through the fallback provider. This makes fallback behavior locally demonstrable without provider credentials.
+The `balanced` route deliberately fails the primary provider once and then returns through the fallback provider. This makes fallback behavior locally demonstrable without provider credentials. To use an OpenAI-compatible service, configure an endpoint; that provider switches from the deterministic implementation to the HTTP adapter.
+
+```bash
+export AGENTOPS_PRIMARY_ENDPOINT='https://api.example.com/v1/chat/completions'
+export AGENTOPS_PRIMARY_API_KEY='your-key'
+export AGENTOPS_PRIMARY_MODEL='your-model'
+export AGENTOPS_FALLBACK_ENDPOINT='https://backup.example.com/v1/chat/completions'
+export AGENTOPS_FALLBACK_API_KEY='backup-key'
+export AGENTOPS_FALLBACK_MODEL='backup-model'
+mvn spring-boot:run
+```
+
+Supported runtime settings include `AGENTOPS_MAX_RETRIES`, `AGENTOPS_BACKOFF_MILLIS`, `AGENTOPS_BREAKER_THRESHOLD`, and `AGENTOPS_PROVIDER_TIMEOUT_MILLIS`. API keys are read only from environment variables and are never included in responses or metrics.
 
 ## Tool idempotency example
 

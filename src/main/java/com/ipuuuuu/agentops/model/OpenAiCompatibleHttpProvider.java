@@ -15,15 +15,25 @@ public final class OpenAiCompatibleHttpProvider implements ModelProvider {
     private final Duration timeout;
 
     public OpenAiCompatibleHttpProvider(String providerName, URI endpoint, String apiKey) {
-        this(providerName, endpoint, apiKey, Duration.ofSeconds(30));
+        this(providerName, endpoint, apiKey, "", Duration.ofSeconds(30));
     }
     public OpenAiCompatibleHttpProvider(String providerName, URI endpoint, String apiKey, Duration timeout) {
+        this(providerName, endpoint, apiKey, "", timeout);
+    }
+    public OpenAiCompatibleHttpProvider(String providerName, URI endpoint, String apiKey, String upstreamModel) {
+        this(providerName, endpoint, apiKey, upstreamModel, Duration.ofSeconds(30));
+    }
+    public OpenAiCompatibleHttpProvider(String providerName, URI endpoint, String apiKey, String upstreamModel,
+                                        Duration timeout) {
         this.providerName = providerName; this.endpoint = endpoint; this.apiKey = apiKey == null ? "" : apiKey;
+        this.upstreamModel = upstreamModel == null ? "" : upstreamModel;
         this.timeout = timeout; this.client = HttpClient.newBuilder().connectTimeout(timeout).build();
     }
+    private final String upstreamModel;
     @Override public String name() { return providerName; }
     @Override public ModelResponse complete(ModelRequest request) {
-        String body = "{\"model\":\"" + escape(request.model()) + "\",\"messages\":[{\"role\":\"user\",\"content\":\"" + escape(request.prompt()) + "\"}]}";
+        String model = upstreamModel.isBlank() ? request.model() : upstreamModel;
+        String body = "{\"model\":\"" + escape(model) + "\",\"messages\":[{\"role\":\"user\",\"content\":\"" + escape(request.prompt()) + "\"}]}";
         HttpRequest.Builder builder = HttpRequest.newBuilder(endpoint).timeout(timeout)
                 .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(body));
         if (!apiKey.isBlank()) builder.header("Authorization", "Bearer " + apiKey);
