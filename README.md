@@ -17,8 +17,7 @@ AgentOps-J is a Java 17 reference implementation for operating AI agents safely 
 ## Quick start
 
 ```bash
-javac -d out $(find src/main/java -name '*.java')
-java -cp out com.ipuuuuu.agentops.AgentOpsApplication
+mvn spring-boot:run
 ```
 
 The service listens on `http://localhost:8080`.
@@ -75,11 +74,18 @@ The report includes success rate, fallback rate, P50/P95/P99 latency, token esti
 
 ## Development
 
-`pom.xml` is included as the migration point for a Spring Boot implementation. The initial MVP deliberately uses only the JDK HTTP server so it can be compiled and verified on a clean Java 17 workstation.
+The HTTP layer runs on Spring Boot 3 with Java 17. Maven is used for dependency resolution, tests, and packaging.
 
 ```bash
-javac -d out $(find src/main/java src/test/java -name '*.java')
-java -ea -cp out com.ipuuuuu.agentops.AgentOpsApplicationTest
+mvn test
+mvn spring-boot:run
+```
+
+To build and run the executable jar:
+
+```bash
+mvn package
+java -jar target/agentops-j-0.1.0-SNAPSHOT.jar
 ```
 
 ## Roadmap

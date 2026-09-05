@@ -1,10 +1,12 @@
-FROM eclipse-temurin:17-jdk AS build
+FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
+COPY pom.xml .
+RUN mvn -B -q dependency:go-offline
 COPY src ./src
-RUN mkdir -p out && javac -d out $(find src/main/java -name '*.java')
+RUN mvn -B -q -DskipTests package
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
-COPY --from=build /app/out ./out
+COPY --from=build /app/target/agentops-j-0.1.0-SNAPSHOT.jar ./app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-cp", "out", "com.ipuuuuu.agentops.AgentOpsApplication"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

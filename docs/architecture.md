@@ -4,7 +4,7 @@
 
 ```text
 HTTP request
-  -> RequestHandler creates trace
+  -> Spring MVC controller creates trace
   -> ModelRouter selects providers by priority
   -> Provider attempt succeeds or emits retryable failure
   -> ModelRouter records fallback when moving to a lower-priority provider

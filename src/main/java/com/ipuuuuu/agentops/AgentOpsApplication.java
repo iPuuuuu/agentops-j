@@ -1,23 +1,37 @@
 package com.ipuuuuu.agentops;
 
-import com.ipuuuuu.agentops.api.RequestHandler;
 import com.ipuuuuu.agentops.model.ModelRouter;
 import com.ipuuuuu.agentops.observability.MetricsRegistry;
 import com.ipuuuuu.agentops.observability.TraceStore;
 import com.ipuuuuu.agentops.tools.ToolExecutor;
-import com.sun.net.httpserver.HttpServer;
-import java.net.InetSocketAddress;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 
-public final class AgentOpsApplication {
-    private AgentOpsApplication() {}
+@SpringBootApplication
+public class AgentOpsApplication {
 
-    public static void main(String[] args) throws Exception {
-        MetricsRegistry metrics = new MetricsRegistry();
-        TraceStore traces = new TraceStore();
-        RequestHandler handler = new RequestHandler(new ModelRouter(metrics), new ToolExecutor(metrics), metrics, traces);
-        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
-        server.createContext("/", handler);
-        server.start();
-        System.out.println("AgentOps-J listening on http://localhost:8080");
+    public static void main(String[] args) {
+        SpringApplication.run(AgentOpsApplication.class, args);
+    }
+
+    @Bean
+    MetricsRegistry metricsRegistry() {
+        return new MetricsRegistry();
+    }
+
+    @Bean
+    TraceStore traceStore() {
+        return new TraceStore();
+    }
+
+    @Bean
+    ModelRouter modelRouter(MetricsRegistry metrics) {
+        return ModelRouter.fromEnvironment(metrics);
+    }
+
+    @Bean
+    ToolExecutor toolExecutor(MetricsRegistry metrics) {
+        return new ToolExecutor(metrics);
     }
 }

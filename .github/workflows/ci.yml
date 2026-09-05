@@ -13,7 +13,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Compile
-        run: mkdir -p out && javac -d out $(find src/main/java src/test/java -name '*.java')
       - name: Test
-        run: java -ea -cp out com.ipuuuuu.agentops.AgentOpsApplicationTest
+        run: mvn -B test
+      - name: Package
+        run: mvn -B -DskipTests package

@@ -1,6 +1,6 @@
 # Spring Boot 3 Migration Entry Point
 
-This directory is a dependency-free migration guide and configuration contract. The runnable MVP intentionally remains JDK-only; do not add Spring imports to `src/main` until Maven/CI dependency resolution is available.
+The main application has now completed the Spring Boot 3 migration. This directory remains as a migration reference and configuration contract.
 
 ## Suggested mapping
 

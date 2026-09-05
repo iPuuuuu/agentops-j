@@ -1,6 +1,6 @@
 # AgentOps-J 当前完成进度
 
-更新时间：2026-08-21
+更新时间：2026-09-05
 
 ## 1. 当前版本
 
@@ -16,8 +16,8 @@
 ### 2.1 Java 运行时
 
 - 使用 Java 17 编写并验证
-- 当前核心实现仅依赖 JDK，避免本机缺少 Maven 时无法运行
-- 提供 `pom.xml` 作为后续迁移 Spring Boot 的项目入口
+- 核心业务模块保持 JDK 依赖，HTTP 运行时已迁移到 Spring Boot 3
+- 使用 Maven 管理 Spring Boot 依赖、测试和可执行 jar 打包
 - 提供 Dockerfile 和 Docker Compose 配置
 
 ### 2.2 HTTP API
@@ -137,7 +137,7 @@
 
 | 模块 | 当前状态 | 完成度判断 | 下一步关键动作 |
 | --- | --- | --- | --- |
-| HTTP API | MVP 已完成 | 可本地演示 | 迁移到 Spring Boot Controller，并补充统一错误响应 |
+| HTTP API | Spring Boot 迁移完成 | MockMvc 集成测试通过 | 补充鉴权、限流和生产环境配置 |
 | 模型路由 | MVP 已完成 | 仅模拟 Provider | 接入可替换的真实 Provider Adapter |
 | 重试与降级 | 原型已完成 | 仅有确定性 fallback | 增加错误分类、超时、退避和熔断 |
 | Tool Runtime | MVP 已完成 | 单进程幂等 | Redis 持久化、并发原子性和 JSON Schema 校验 |
@@ -156,7 +156,7 @@
 | 阶段 | 目标 | 关键交付物 | 当前状态 |
 | --- | --- | --- | --- |
 | Phase 0 | 证明最小可靠性语义 | Java MVP、fallback、Tool 幂等、基础 Trace | 已完成 |
-| Phase 1 | 生产化核心运行时 | Spring Boot、真实 Provider、Redis、错误分类、集成测试 | 进行中，尚未开始编码 |
+| Phase 1 | 生产化核心运行时 | Spring Boot、真实 Provider、Redis、错误分类、集成测试 | 进行中，Spring Boot 和集成测试已完成 |
 | Phase 2 | 分布式任务和发布治理 | Kafka、DLQ、Prompt Registry、灰度与回滚 | 未开始 |
 | Phase 3 | AI 质量与可观测平台 | OpenTelemetry、Python 评测、Prometheus、Grafana、Benchmark | 未开始 |
 | Phase 4 | 开源生态与部署 | MCP、SDK、贡献指南、Kubernetes、社区 PR | 未开始 |
@@ -165,9 +165,9 @@
 
 ### 风险一：MVP 与生产系统之间存在较大差距
 
-**表现**：当前实现为 JDK HTTP Server，存储、Provider 和 Trace 都是进程内或模拟实现。
+**表现**：当前 HTTP 运行时已是 Spring Boot，存储、Provider 和 Trace 仍有进程内或模拟实现。
 
-**应对**：在 README 和进度文档中明确标注 MVP；下一阶段优先迁移 Spring Boot、接入 Redis 并补充集成测试，不提前宣称生产级能力。
+**应对**：在 README 和进度文档中明确标注 MVP；下一阶段接入 Redis、真实 Provider 并继续完善集成测试，不提前宣称生产级能力。
 
 ### 风险二：幂等实现无法支持多实例
 
@@ -264,7 +264,9 @@ agentops-j/
 └── src/
     ├── main/java/com/ipuuuuu/agentops/
     │   ├── AgentOpsApplication.java
-    │   ├── api/RequestHandler.java
+    │   ├── api/AgentOpsController.java
+    │   ├── api/ApiExceptionHandler.java
+    │   └── api/MetricsFilter.java
     │   ├── core/Json.java
     │   ├── model/ModelResponse.java
     │   ├── model/ModelRouter.java
@@ -272,14 +274,16 @@ agentops-j/
     │   ├── observability/TraceStore.java
     │   └── tools/ToolExecutor.java
     └── test/java/com/ipuuuuu/agentops/
-        └── AgentOpsApplicationTest.java
+        ├── AgentOpsApplicationTest.java
+        ├── LegacyCoreSmokeTest.java
+        └── api/AgentOpsControllerIntegrationTest.java
 ```
 
 ## 8. 尚未完成事项
 
 ### P0：下一阶段必须完成
 
-- 接入 Spring Boot 3
+- 接入真实模型 Provider 抽象
 - 接入真实模型 Provider 抽象
 - 将幂等记录迁移到 Redis 或 PostgreSQL
 - 增加并发场景下的原子幂等测试
@@ -319,7 +323,7 @@ agentops-j/
 
 ## 9. 当前限制
 
-1. 目前是可运行 MVP，不应描述为生产级平台。
+1. 目前是可运行 MVP，不应描述为生产级平台；HTTP 层已使用 Spring Boot 3。
 2. Model Provider 为模拟实现，尚无真实模型网络调用。
 3. Tool 幂等存储为内存结构，不支持多实例共享。
 4. Trace 与 Metrics 仅保存在进程内，不支持持久化或外部监控系统。
@@ -331,7 +335,7 @@ agentops-j/
 
 下一阶段完成后，至少应满足：
 
-- Spring Boot 项目可以通过 Maven 构建
+- Spring Boot 项目可以通过 Maven 构建并通过 MockMvc 集成测试
 - 接入至少两个真实或可替换的 Model Provider
 - Redis 幂等记录在服务重启后仍然有效
 - 并发重复 Tool 请求只产生一次副作用
