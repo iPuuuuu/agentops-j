@@ -7,7 +7,10 @@ AgentOps-J is a Java 17 reference implementation for operating AI agents safely 
 - OpenAI-compatible `POST /v1/chat/completions` shape for a deterministic provider gateway
 - Ordered model routing with retry and fallback events
 - Tool execution idempotency keyed by tenant, tool, and business request
-- In-memory trace and metric counters, exposed through HTTP
+- In-memory trace and metric counters, exposed through HTTP and Prometheus text format
+- JDK-only versioned prompt registry with activation, rollback, and audit history
+- JDK-only asynchronous task queue with bounded retries and DLQ replay
+- Pluggable idempotency store seam with in-memory and Redis-command adapters
 - JDK-only runtime so the core can compile and run with Java 17
 - Docker image and Docker Compose local workflow
 
@@ -58,7 +61,17 @@ Client -> HTTP API -> ModelRouter -> ordered providers
                   -> TraceStore / MetricsRegistry
 ```
 
-See [architecture.md](docs/architecture.md), [failure-modes.md](docs/failure-modes.md), and [benchmark.md](docs/benchmark.md).
+See [architecture.md](docs/architecture.md), [failure-modes.md](docs/failure-modes.md), [benchmark.md](docs/benchmark.md), and [evaluation.md](docs/evaluation.md).
+
+## Offline evaluation
+
+A public synthetic dataset with 100 JSONL samples and a dependency-free Python evaluator are included:
+
+```bash
+python3 eval/evaluate.py
+```
+
+The report includes success rate, fallback rate, P50/P95/P99 latency, token estimates, illustrative cost, and Tool success rate. See [evaluation.md](docs/evaluation.md) for schema, reproducibility, and limitations.
 
 ## Development
 

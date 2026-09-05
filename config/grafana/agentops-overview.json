@@ -1,0 +1,13 @@
+{
+  "title": "AgentOps-J Overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "browser",
+  "panels": [
+    {"type":"stat","title":"Model requests","targets":[{"expr":"agentops_requests_total"}]},
+    {"type":"stat","title":"Fallbacks","targets":[{"expr":"agentops_fallbacks_total"}]},
+    {"type":"stat","title":"Tool executions","targets":[{"expr":"agentops_tool_executions_total"}]},
+    {"type":"stat","title":"Tool replays","targets":[{"expr":"agentops_tool_replays_total"}]},
+    {"type":"stat","title":"HTTP errors","targets":[{"expr":"agentops_http_errors_total"}]}
+  ]
+}

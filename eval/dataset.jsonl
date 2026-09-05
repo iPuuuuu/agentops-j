@@ -1,0 +1,100 @@
+{"id":"sample-001","category":"classification","prompt":"Classify the sentiment of: The delivery arrived early and intact.","expected":"positive"}
+{"id":"sample-002","category":"classification","prompt":"Classify the sentiment of: The support response was clear and helpful.","expected":"positive"}
+{"id":"sample-003","category":"classification","prompt":"Classify the sentiment of: The package was damaged on arrival.","expected":"negative"}
+{"id":"sample-004","category":"classification","prompt":"Classify the sentiment of: The dashboard is acceptable but not exceptional.","expected":"neutral"}
+{"id":"sample-005","category":"classification","prompt":"Classify the sentiment of: The export completed without errors.","expected":"positive"}
+{"id":"sample-006","category":"classification","prompt":"Classify the sentiment of: The service timed out twice.","expected":"negative"}
+{"id":"sample-007","category":"classification","prompt":"Classify the sentiment of: The update changed several labels.","expected":"neutral"}
+{"id":"sample-008","category":"classification","prompt":"Classify the sentiment of: The instructions were easy to follow.","expected":"positive"}
+{"id":"sample-009","category":"classification","prompt":"Classify the sentiment of: The invoice contains an incorrect total.","expected":"negative"}
+{"id":"sample-010","category":"classification","prompt":"Classify the sentiment of: The report has seven sections.","expected":"neutral"}
+{"id":"sample-011","category":"extraction","prompt":"Extract the order identifier from: Order AX-101 is ready.","expected":"AX-101"}
+{"id":"sample-012","category":"extraction","prompt":"Extract the order identifier from: Order AX-102 is ready.","expected":"AX-102"}
+{"id":"sample-013","category":"extraction","prompt":"Extract the order identifier from: Order AX-103 is ready.","expected":"AX-103"}
+{"id":"sample-014","category":"extraction","prompt":"Extract the order identifier from: Order AX-104 is ready.","expected":"AX-104"}
+{"id":"sample-015","category":"extraction","prompt":"Extract the order identifier from: Order AX-105 is ready.","expected":"AX-105"}
+{"id":"sample-016","category":"extraction","prompt":"Extract the order identifier from: Order AX-106 is ready.","expected":"AX-106"}
+{"id":"sample-017","category":"extraction","prompt":"Extract the order identifier from: Order AX-107 is ready.","expected":"AX-107"}
+{"id":"sample-018","category":"extraction","prompt":"Extract the order identifier from: Order AX-108 is ready.","expected":"AX-108"}
+{"id":"sample-019","category":"extraction","prompt":"Extract the order identifier from: Order AX-109 is ready.","expected":"AX-109"}
+{"id":"sample-020","category":"extraction","prompt":"Extract the order identifier from: Order AX-110 is ready.","expected":"AX-110"}
+{"id":"sample-021","category":"summarization","prompt":"Summarize: A maintenance window runs from 01:00 to 02:00 UTC.","expected":"maintenance from 01:00 to 02:00 UTC"}
+{"id":"sample-022","category":"summarization","prompt":"Summarize: A maintenance window runs from 02:00 to 03:00 UTC.","expected":"maintenance from 02:00 to 03:00 UTC"}
+{"id":"sample-023","category":"summarization","prompt":"Summarize: A maintenance window runs from 03:00 to 04:00 UTC.","expected":"maintenance from 03:00 to 04:00 UTC"}
+{"id":"sample-024","category":"summarization","prompt":"Summarize: A maintenance window runs from 04:00 to 05:00 UTC.","expected":"maintenance from 04:00 to 05:00 UTC"}
+{"id":"sample-025","category":"summarization","prompt":"Summarize: A maintenance window runs from 05:00 to 06:00 UTC.","expected":"maintenance from 05:00 to 06:00 UTC"}
+{"id":"sample-026","category":"summarization","prompt":"Summarize: A maintenance window runs from 06:00 to 07:00 UTC.","expected":"maintenance from 06:00 to 07:00 UTC"}
+{"id":"sample-027","category":"summarization","prompt":"Summarize: A maintenance window runs from 07:00 to 08:00 UTC.","expected":"maintenance from 07:00 to 08:00 UTC"}
+{"id":"sample-028","category":"summarization","prompt":"Summarize: A maintenance window runs from 08:00 to 09:00 UTC.","expected":"maintenance from 08:00 to 09:00 UTC"}
+{"id":"sample-029","category":"summarization","prompt":"Summarize: A maintenance window runs from 09:00 to 10:00 UTC.","expected":"maintenance from 09:00 to 10:00 UTC"}
+{"id":"sample-030","category":"summarization","prompt":"Summarize: A maintenance window runs from 10:00 to 11:00 UTC.","expected":"maintenance from 10:00 to 11:00 UTC"}
+{"id":"sample-031","category":"tool","prompt":"Create a ticket with title: Printer offline in room 1.","expected":"ticket_created"}
+{"id":"sample-032","category":"tool","prompt":"Create a ticket with title: Printer offline in room 2.","expected":"ticket_created"}
+{"id":"sample-033","category":"tool","prompt":"Create a ticket with title: Printer offline in room 3.","expected":"ticket_created"}
+{"id":"sample-034","category":"tool","prompt":"Create a ticket with title: Printer offline in room 4.","expected":"ticket_created"}
+{"id":"sample-035","category":"tool","prompt":"Create a ticket with title: Printer offline in room 5.","expected":"ticket_created"}
+{"id":"sample-036","category":"tool","prompt":"Create a ticket with title: Printer offline in room 6.","expected":"ticket_created"}
+{"id":"sample-037","category":"tool","prompt":"Create a ticket with title: Printer offline in room 7.","expected":"ticket_created"}
+{"id":"sample-038","category":"tool","prompt":"Create a ticket with title: Printer offline in room 8.","expected":"ticket_created"}
+{"id":"sample-039","category":"tool","prompt":"Create a ticket with title: Printer offline in room 9.","expected":"ticket_created"}
+{"id":"sample-040","category":"tool","prompt":"Create a ticket with title: Printer offline in room 10.","expected":"ticket_created"}
+{"id":"sample-041","category":"classification","prompt":"Classify the sentiment of: The new search is faster.","expected":"positive"}
+{"id":"sample-042","category":"classification","prompt":"Classify the sentiment of: The new search is slower.","expected":"negative"}
+{"id":"sample-043","category":"classification","prompt":"Classify the sentiment of: The new search has filters.","expected":"neutral"}
+{"id":"sample-044","category":"classification","prompt":"Classify the sentiment of: The chart is readable.","expected":"positive"}
+{"id":"sample-045","category":"classification","prompt":"Classify the sentiment of: The chart is misleading.","expected":"negative"}
+{"id":"sample-046","category":"classification","prompt":"Classify the sentiment of: The chart uses blue bars.","expected":"neutral"}
+{"id":"sample-047","category":"classification","prompt":"Classify the sentiment of: The cache reduced latency.","expected":"positive"}
+{"id":"sample-048","category":"classification","prompt":"Classify the sentiment of: The cache caused stale data.","expected":"negative"}
+{"id":"sample-049","category":"classification","prompt":"Classify the sentiment of: The cache has a five minute TTL.","expected":"neutral"}
+{"id":"sample-050","category":"classification","prompt":"Classify the sentiment of: The alert was resolved quickly.","expected":"positive"}
+{"id":"sample-051","category":"extraction","prompt":"Extract the region from: Deployment target is region-r01.","expected":"region-r01"}
+{"id":"sample-052","category":"extraction","prompt":"Extract the region from: Deployment target is region-r02.","expected":"region-r02"}
+{"id":"sample-053","category":"extraction","prompt":"Extract the region from: Deployment target is region-r03.","expected":"region-r03"}
+{"id":"sample-054","category":"extraction","prompt":"Extract the region from: Deployment target is region-r04.","expected":"region-r04"}
+{"id":"sample-055","category":"extraction","prompt":"Extract the region from: Deployment target is region-r05.","expected":"region-r05"}
+{"id":"sample-056","category":"extraction","prompt":"Extract the region from: Deployment target is region-r06.","expected":"region-r06"}
+{"id":"sample-057","category":"extraction","prompt":"Extract the region from: Deployment target is region-r07.","expected":"region-r07"}
+{"id":"sample-058","category":"extraction","prompt":"Extract the region from: Deployment target is region-r08.","expected":"region-r08"}
+{"id":"sample-059","category":"extraction","prompt":"Extract the region from: Deployment target is region-r09.","expected":"region-r09"}
+{"id":"sample-060","category":"extraction","prompt":"Extract the region from: Deployment target is region-r10.","expected":"region-r10"}
+{"id":"sample-061","category":"summarization","prompt":"Summarize: The batch contains 11 records and finished at noon.","expected":"11 records finished at noon"}
+{"id":"sample-062","category":"summarization","prompt":"Summarize: The batch contains 12 records and finished at noon.","expected":"12 records finished at noon"}
+{"id":"sample-063","category":"summarization","prompt":"Summarize: The batch contains 13 records and finished at noon.","expected":"13 records finished at noon"}
+{"id":"sample-064","category":"summarization","prompt":"Summarize: The batch contains 14 records and finished at noon.","expected":"14 records finished at noon"}
+{"id":"sample-065","category":"summarization","prompt":"Summarize: The batch contains 15 records and finished at noon.","expected":"15 records finished at noon"}
+{"id":"sample-066","category":"summarization","prompt":"Summarize: The batch contains 16 records and finished at noon.","expected":"16 records finished at noon"}
+{"id":"sample-067","category":"summarization","prompt":"Summarize: The batch contains 17 records and finished at noon.","expected":"17 records finished at noon"}
+{"id":"sample-068","category":"summarization","prompt":"Summarize: The batch contains 18 records and finished at noon.","expected":"18 records finished at noon"}
+{"id":"sample-069","category":"summarization","prompt":"Summarize: The batch contains 19 records and finished at noon.","expected":"19 records finished at noon"}
+{"id":"sample-070","category":"summarization","prompt":"Summarize: The batch contains 20 records and finished at noon.","expected":"20 records finished at noon"}
+{"id":"sample-071","category":"tool","prompt":"Send a notification for event EVT-071.","expected":"notification_sent"}
+{"id":"sample-072","category":"tool","prompt":"Send a notification for event EVT-072.","expected":"notification_sent"}
+{"id":"sample-073","category":"tool","prompt":"Send a notification for event EVT-073.","expected":"notification_sent"}
+{"id":"sample-074","category":"tool","prompt":"Send a notification for event EVT-074.","expected":"notification_sent"}
+{"id":"sample-075","category":"tool","prompt":"Send a notification for event EVT-075.","expected":"notification_sent"}
+{"id":"sample-076","category":"tool","prompt":"Send a notification for event EVT-076.","expected":"notification_sent"}
+{"id":"sample-077","category":"tool","prompt":"Send a notification for event EVT-077.","expected":"notification_sent"}
+{"id":"sample-078","category":"tool","prompt":"Send a notification for event EVT-078.","expected":"notification_sent"}
+{"id":"sample-079","category":"tool","prompt":"Send a notification for event EVT-079.","expected":"notification_sent"}
+{"id":"sample-080","category":"tool","prompt":"Send a notification for event EVT-080.","expected":"notification_sent"}
+{"id":"sample-081","category":"classification","prompt":"Classify the sentiment of: The backup completed successfully.","expected":"positive"}
+{"id":"sample-082","category":"classification","prompt":"Classify the sentiment of: The backup could not be restored.","expected":"negative"}
+{"id":"sample-083","category":"classification","prompt":"Classify the sentiment of: The backup runs nightly.","expected":"neutral"}
+{"id":"sample-084","category":"classification","prompt":"Classify the sentiment of: The API documentation improved.","expected":"positive"}
+{"id":"sample-085","category":"classification","prompt":"Classify the sentiment of: The API returned invalid data.","expected":"negative"}
+{"id":"sample-086","category":"classification","prompt":"Classify the sentiment of: The API uses JSON.","expected":"neutral"}
+{"id":"sample-087","category":"classification","prompt":"Classify the sentiment of: The rollout was smooth.","expected":"positive"}
+{"id":"sample-088","category":"classification","prompt":"Classify the sentiment of: The rollout was interrupted.","expected":"negative"}
+{"id":"sample-089","category":"classification","prompt":"Classify the sentiment of: The rollout has three stages.","expected":"neutral"}
+{"id":"sample-090","category":"classification","prompt":"Classify the sentiment of: The test suite is reliable.","expected":"positive"}
+{"id":"sample-091","category":"extraction","prompt":"Extract the owner from: Service owner is team-a.","expected":"team-a"}
+{"id":"sample-092","category":"extraction","prompt":"Extract the owner from: Service owner is team-b.","expected":"team-b"}
+{"id":"sample-093","category":"extraction","prompt":"Extract the owner from: Service owner is team-c.","expected":"team-c"}
+{"id":"sample-094","category":"extraction","prompt":"Extract the owner from: Service owner is team-d.","expected":"team-d"}
+{"id":"sample-095","category":"extraction","prompt":"Extract the owner from: Service owner is team-e.","expected":"team-e"}
+{"id":"sample-096","category":"extraction","prompt":"Extract the owner from: Service owner is team-f.","expected":"team-f"}
+{"id":"sample-097","category":"extraction","prompt":"Extract the owner from: Service owner is team-g.","expected":"team-g"}
+{"id":"sample-098","category":"extraction","prompt":"Extract the owner from: Service owner is team-h.","expected":"team-h"}
+{"id":"sample-099","category":"extraction","prompt":"Extract the owner from: Service owner is team-i.","expected":"team-i"}
+{"id":"sample-100","category":"extraction","prompt":"Extract the owner from: Service owner is team-j.","expected":"team-j"}
