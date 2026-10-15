@@ -30,15 +30,16 @@ public final class ModelRouter {
     }
     public static ModelRouter fromEnvironment(MetricsRegistry metrics) {
         Map<String, ModelProvider> providers = new HashMap<>();
-        providers.put("primary-provider", providerFromEnvironment("primary-provider",
+        boolean allowSimulated = environmentBoolean("AGENTOPS_ALLOW_SIMULATED_PROVIDERS", true);
+        addProvider(providers, "primary-provider",
                 "AGENTOPS_PRIMARY_ENDPOINT", "AGENTOPS_PRIMARY_API_KEY", "AGENTOPS_PRIMARY_MODEL",
-                new DeterministicModelProvider("primary-provider", true)));
-        providers.put("fallback-provider", providerFromEnvironment("fallback-provider",
+                new DeterministicModelProvider("primary-provider", true), allowSimulated);
+        addProvider(providers, "fallback-provider",
                 "AGENTOPS_FALLBACK_ENDPOINT", "AGENTOPS_FALLBACK_API_KEY", "AGENTOPS_FALLBACK_MODEL",
-                new DeterministicModelProvider("fallback-provider")));
-        providers.put("fast-provider", providerFromEnvironment("fast-provider",
+                new DeterministicModelProvider("fallback-provider"), allowSimulated);
+        addProvider(providers, "fast-provider",
                 "AGENTOPS_FAST_ENDPOINT", "AGENTOPS_FAST_API_KEY", "AGENTOPS_FAST_MODEL",
-                new DeterministicModelProvider("fast-provider")));
+                new DeterministicModelProvider("fast-provider"), allowSimulated);
         return new ModelRouter(metrics, providers,
                 Map.of("fast", List.of("fast-provider"), "balanced", List.of("primary-provider", "fallback-provider")),
                 environmentInt("AGENTOPS_MAX_RETRIES", 0),
@@ -46,13 +47,17 @@ public final class ModelRouter {
                 environmentInt("AGENTOPS_BREAKER_THRESHOLD", 2));
     }
 
-    private static ModelProvider providerFromEnvironment(String name, String endpointKey, String apiKeyKey,
-                                                          String modelKey, ModelProvider fallback) {
+    private static void addProvider(Map<String, ModelProvider> providers, String name, String endpointKey,
+                                    String apiKeyKey, String modelKey, ModelProvider simulated,
+                                    boolean allowSimulated) {
         String endpoint = System.getenv(endpointKey);
-        if (endpoint == null || endpoint.isBlank()) return fallback;
+        if (endpoint == null || endpoint.isBlank()) {
+            if (allowSimulated) providers.put(name, simulated);
+            return;
+        }
         try {
-            return new OpenAiCompatibleHttpProvider(name, URI.create(endpoint), System.getenv(apiKeyKey),
-                    environment(modelKey, ""), Duration.ofMillis(environmentLong("AGENTOPS_PROVIDER_TIMEOUT_MILLIS", 30_000)));
+            providers.put(name, new OpenAiCompatibleHttpProvider(name, URI.create(endpoint), System.getenv(apiKeyKey),
+                    environment(modelKey, ""), Duration.ofMillis(environmentLong("AGENTOPS_PROVIDER_TIMEOUT_MILLIS", 30_000))));
         } catch (IllegalArgumentException error) {
             throw new IllegalStateException(endpointKey + " must be a valid URI", error);
         }
@@ -71,6 +76,10 @@ public final class ModelRouter {
     private static long environmentLong(String key, long fallback) {
         try { return Long.parseLong(environment(key, Long.toString(fallback))); }
         catch (NumberFormatException error) { return fallback; }
+    }
+    private static boolean environmentBoolean(String key, boolean fallback) {
+        String value = System.getenv(key);
+        return value == null || value.isBlank() ? fallback : Boolean.parseBoolean(value.trim());
     }
     public ModelResponse route(String requestedModel) { return route(new ModelRequest(requestedModel, "")); }
     public ModelResponse route(ModelRequest request) {

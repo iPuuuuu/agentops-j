@@ -61,7 +61,7 @@ public final class AgentOpsController {
         String model = requiredString(body, "model", 128);
         String traceId = traces.start("agent.chat");
         try {
-            ModelResponse result = router.route(new ModelRequest(model, prompt(body)));
+            ModelResponse result = router.route(modelRequest(model, body));
             String response = "{\"id\":\"chatcmpl-" + traceId.substring(0, 8) + "\",\"trace_id\":\"" + traceId
                     + "\",\"model\":\"" + Json.escape(model) + "\",\"provider\":\"" + Json.escape(result.provider())
                     + "\",\"attempts\":" + result.attempts() + ",\"fallback\":" + result.fallback()
@@ -106,19 +106,60 @@ public final class AgentOpsController {
         return value;
     }
 
-    private static String prompt(Map<String, Object> body) {
+    private static ModelRequest modelRequest(String model, Map<String, Object> body) {
         String direct = stringValue(body.get("prompt"), "prompt", 65_536);
-        if (!direct.isBlank()) return direct;
+        List<ModelRequest.Message> parsed = new java.util.ArrayList<>();
+        if (!direct.isBlank()) parsed.add(new ModelRequest.Message("user", direct));
         Object messages = body.get("messages");
-        if (!(messages instanceof List<?> list)) return "";
-        for (int i = list.size() - 1; i >= 0; i--) {
-            Object item = list.get(i);
-            if (item instanceof Map<?, ?> message) {
-                Object content = message.get("content");
-                if (content instanceof String text && !text.isBlank()) return text;
+        if (messages instanceof List<?> list) {
+            if (!parsed.isEmpty()) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_request", "prompt and messages are mutually exclusive");
+            }
+            if (list.size() > 100) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_request", "messages is too large");
+            }
+            for (Object item : list) {
+                if (!(item instanceof Map<?, ?> message)) {
+                    throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_request", "messages must contain objects");
+                }
+                String role = stringValue(message.get("role"), "messages.role", 32).trim();
+                if (!List.of("system", "user", "assistant").contains(role)) {
+                    throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_request", "messages.role is invalid");
+                }
+                String content = stringValue(message.get("content"), "messages.content", 65_536);
+                parsed.add(new ModelRequest.Message(role, content));
             }
         }
-        return "";
+        if (parsed.isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_request", "prompt or messages is required");
+        }
+        Double temperature = optionalDouble(body.get("temperature"), "temperature", 0.0, 2.0);
+        Integer maxTokens = optionalInteger(body.get("max_tokens"), "max_tokens", 1, 65_536);
+        return new ModelRequest(model, parsed, temperature, maxTokens);
+    }
+
+    private static Double optionalDouble(Object raw, String name, double minimum, double maximum) {
+        if (raw == null) return null;
+        if (!(raw instanceof Number number)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_request", name + " must be a number");
+        }
+        double value = number.doubleValue();
+        if (!Double.isFinite(value) || value < minimum || value > maximum) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_request", name + " is out of range");
+        }
+        return value;
+    }
+
+    private static Integer optionalInteger(Object raw, String name, int minimum, int maximum) {
+        if (raw == null) return null;
+        if (!(raw instanceof Number number) || number.doubleValue() != number.intValue()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_request", name + " must be an integer");
+        }
+        int value = number.intValue();
+        if (value < minimum || value > maximum) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_request", name + " is out of range");
+        }
+        return value;
     }
 
     private static Map<String, ?> arguments(Map<String, Object> body) {

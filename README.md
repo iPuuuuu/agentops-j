@@ -48,6 +48,8 @@ Set `AGENTOPS_REDIS_URL` to enable durable Tool idempotency. Without it, the ser
 
 Supported runtime settings include `AGENTOPS_MAX_RETRIES`, `AGENTOPS_BACKOFF_MILLIS`, `AGENTOPS_BREAKER_THRESHOLD`, and `AGENTOPS_PROVIDER_TIMEOUT_MILLIS`. API keys are read only from environment variables and are never included in responses or metrics.
 
+The standalone demo uses deterministic providers when endpoints are absent. Any real application, especially a health-related service, must set `AGENTOPS_ALLOW_SIMULATED_PROVIDERS=false`. With that setting, an unconfigured or unavailable route fails closed with HTTP 503 instead of returning demo content. The gateway preserves `system`, `user`, and `assistant` messages plus `temperature` and `max_tokens` when forwarding OpenAI-compatible requests.
+
 ## Tool idempotency example
 
 ```bash

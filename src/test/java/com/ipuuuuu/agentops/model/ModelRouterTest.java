@@ -4,6 +4,7 @@ import com.ipuuuuu.agentops.observability.MetricsRegistry;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import com.sun.net.httpserver.HttpServer;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -17,6 +18,8 @@ public final class ModelRouterTest {
         unknownModelIsExplicit();
         errorClassificationIsExplicit();
         openAiCompatibleProviderUsesConfiguredUpstreamModel();
+        openAiCompatibleProviderPreservesMessagesAndParameters();
+        emptyProviderSetFailsClosed();
         System.out.println("ModelRouterTest passed");
     }
 
@@ -114,6 +117,47 @@ public final class ModelRouterTest {
             }
         } catch (Exception error) {
             throw new AssertionError(error);
+        }
+    }
+
+    private static void openAiCompatibleProviderPreservesMessagesAndParameters() {
+        try {
+            AtomicReference<String> requestBody = new AtomicReference<>();
+            HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+            server.createContext("/chat", exchange -> {
+                requestBody.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+                byte[] response = "{\"choices\":[{\"message\":{\"content\":\"safe response\"}}]}".getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (var output = exchange.getResponseBody()) { output.write(response); }
+            });
+            server.start();
+            try {
+                ModelProvider provider = new OpenAiCompatibleHttpProvider("remote", new java.net.URI(
+                        "http://127.0.0.1:" + server.getAddress().getPort() + "/chat"), "", "medical-model");
+                provider.complete(new ModelRequest("balanced", List.of(
+                        new ModelRequest.Message("system", "do not diagnose"),
+                        new ModelRequest.Message("user", "explain result")), 0.0, 200));
+                String body = requestBody.get();
+                check(body.contains("\"role\":\"system\",\"content\":\"do not diagnose\""), "system message is preserved");
+                check(body.contains("\"role\":\"user\",\"content\":\"explain result\""), "user message is preserved");
+                check(body.contains("\"temperature\":0.0"), "temperature is preserved");
+                check(body.contains("\"max_tokens\":200"), "max_tokens is preserved");
+            } finally {
+                server.stop(0);
+            }
+        } catch (Exception error) {
+            throw new AssertionError(error);
+        }
+    }
+
+    private static void emptyProviderSetFailsClosed() {
+        ModelRouter router = new ModelRouter(new MetricsRegistry(), Map.of(),
+                Map.of("balanced", List.of("primary-provider", "fallback-provider")), 0, 0, 1);
+        try {
+            router.route(new ModelRequest("balanced", "medical question"));
+            throw new AssertionError("missing providers must fail closed");
+        } catch (IllegalStateException expected) {
+            check(expected.getMessage().contains("no model provider"), "missing provider is explicit");
         }
     }
 

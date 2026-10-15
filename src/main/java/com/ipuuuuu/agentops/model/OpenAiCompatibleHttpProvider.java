@@ -1,5 +1,6 @@
 package com.ipuuuuu.agentops.model;
 
+import com.ipuuuuu.agentops.core.Json;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -33,15 +34,25 @@ public final class OpenAiCompatibleHttpProvider implements ModelProvider {
     @Override public String name() { return providerName; }
     @Override public ModelResponse complete(ModelRequest request) {
         String model = upstreamModel.isBlank() ? request.model() : upstreamModel;
-        String body = "{\"model\":\"" + escape(model) + "\",\"messages\":[{\"role\":\"user\",\"content\":\"" + escape(request.prompt()) + "\"}]}";
+        StringBuilder body = new StringBuilder("{\"model\":\"").append(Json.escape(model)).append("\",\"messages\":[");
+        for (int index = 0; index < request.messages().size(); index++) {
+            ModelRequest.Message message = request.messages().get(index);
+            if (index > 0) body.append(',');
+            body.append("{\"role\":\"").append(Json.escape(message.role()))
+                    .append("\",\"content\":\"").append(Json.escape(message.content())).append("\"}");
+        }
+        body.append(']');
+        if (request.temperature() != null) body.append(",\"temperature\":").append(request.temperature());
+        if (request.maxTokens() != null) body.append(",\"max_tokens\":").append(request.maxTokens());
+        body.append('}');
         HttpRequest.Builder builder = HttpRequest.newBuilder(endpoint).timeout(timeout)
-                .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(body));
+                .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(body.toString()));
         if (!apiKey.isBlank()) builder.header("Authorization", "Bearer " + apiKey);
         try {
             HttpResponse<String> response = client.send(builder.build(), HttpResponse.BodyHandlers.ofString());
             int status = response.statusCode();
             if (status < 200 || status >= 300) throw new ProviderException(classify(status), "provider HTTP " + status + ": " + response.body(), status);
-            String content = extract(response.body(), "content");
+            String content = Json.value(response.body(), "content");
             return new ModelResponse(providerName, content.isBlank() ? response.body() : content, 1, false);
         } catch (ProviderException e) { throw e;
         } catch (Exception e) { throw new ProviderException(ProviderException.Kind.NETWORK, "provider request failed", e); }
@@ -53,14 +64,4 @@ public final class OpenAiCompatibleHttpProvider implements ModelProvider {
         if (s >= 500) return ProviderException.Kind.SERVER;
         return ProviderException.Kind.UNKNOWN;
     }
-    private static String extract(String json, String key) {
-        String marker = "\"" + key + "\""; int p = json.indexOf(marker); if (p < 0) return "";
-        p = json.indexOf(':', p + marker.length()); if (p < 0) return ""; p++;
-        while (p < json.length() && Character.isWhitespace(json.charAt(p))) p++;
-        if (p >= json.length() || json.charAt(p) != '\"') return ""; p++;
-        StringBuilder out = new StringBuilder(); boolean esc = false;
-        for (; p < json.length(); p++) { char c = json.charAt(p); if (esc) { out.append(c); esc = false; } else if (c == '\\') esc = true; else if (c == '\"') break; else out.append(c); }
-        return out.toString();
-    }
-    private static String escape(String s) { return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n"); }
 }

@@ -42,6 +42,18 @@ class AgentOpsControllerIntegrationTest {
                         .content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("invalid_request"));
+
+        mockMvc.perform(post("/v1/chat/completions")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"model\":\"balanced\",\"messages\":[{\"role\":\"tool\",\"content\":\"unsafe\"}]}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("invalid_request"));
+
+        mockMvc.perform(post("/v1/chat/completions")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"model\":\"balanced\",\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}],\"max_tokens\":0}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("invalid_request"));
     }
 
     @Test
