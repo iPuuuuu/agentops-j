@@ -12,7 +12,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 /** Enables durable tool idempotency when AGENTOPS_REDIS_URL is configured. */
 @Configuration
 @ConditionalOnProperty(name = "agentops.redis.url")
-final class RedisConfiguration {
+class RedisConfiguration {
     @Bean
     RedisConnectionFactory redisConnectionFactory() {
         java.net.URI uri = java.net.URI.create(System.getenv().get("AGENTOPS_REDIS_URL"));
