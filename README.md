@@ -108,15 +108,12 @@ java -jar target/agentops-j-0.1.0-SNAPSHOT.jar
 
 ## Roadmap
 
-- [x] Model routing, retries and fallback
-- [x] Idempotent tool calls
-- [x] Trace and metrics primitives
-- [ ] Redis-backed idempotency records
-- [ ] Kafka task execution and dead-letter queues
-- [ ] OpenTelemetry exporter
-- [ ] PostgreSQL prompt registry
-- [ ] Python evaluation service
-- [ ] Prometheus / Grafana dashboards
+The complete delivery plan, final implementation target, milestone gates, and
+risk controls are maintained in [docs/project-plan.md](docs/project-plan.md).
+
+The immediate priorities are contract hardening, real-provider failure tests,
+multi-instance Redis idempotency proof, and metadata-safe observability. Kafka,
+a control-plane UI, and Kubernetes remain deferred until those gates pass.
 
 ## Security note
 
